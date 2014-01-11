@@ -5,6 +5,7 @@
 #include <node.h>
 #include <CL\cl.h>
 #include <unordered_map>
+#include "common.hpp"
 
 using namespace v8;
 
@@ -27,11 +28,13 @@ private:
 
 public:
 
+	cl_platform_id GetHandle();
+
 	static void Init( Handle<Object> exports );
 
 	static Local<Object> New( cl_platform_id handle );
 	
-	static bool IsPlatform( Handle<Value> object );
+	static bool IsPlatform( Handle<Value> value );
 
 	static Local<Array> GetPlatforms();
 	

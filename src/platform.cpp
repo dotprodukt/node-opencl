@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include "platform.hpp"
+#include "device.hpp"
 #include <iostream>
 
 using namespace nodecl;
@@ -7,7 +8,7 @@ using namespace nodecl;
 Persistent<FunctionTemplate> Platform::constructorTemplate;
 std::unordered_map<cl_platform_id, Persistent<Object>*> Platform::platformMap;
 
-bool guardNew;
+bool guardNew = TRUE;
 
 #define SET_JS_ENUM( target, name ) target->Set(String::NewSymbol( #name ), Integer::New( name ), (PropertyAttribute)(ReadOnly|DontDelete|DontEnum) );
 
@@ -36,6 +37,10 @@ Platform::~Platform(){
 	std::cout << "Released CLPlatform wrapper.\n";
 }
 
+cl_platform_id Platform::GetHandle(){
+	return clHandle;
+}
+
 void Platform::Init( Handle<Object> exports ){
 	constructorTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(constructor) ));
 	constructorTemplate->SetClassName( String::NewSymbol( "CLPlatform" ));
@@ -55,7 +60,20 @@ void Platform::Init( Handle<Object> exports ){
 
 	exports->Set( String::NewSymbol("Platform"), constructorTemplate->GetFunction());
 
+	//guardNew = TRUE;
+}
+
+Local<Object> Platform::New( cl_platform_id handle ){
+	Platform* platform = new Platform( handle );
+
+	guardNew = FALSE;
+	Local<Object> platformObject = constructorTemplate->GetFunction()->NewInstance();
 	guardNew = TRUE;
+	platform->Wrap( platformObject );
+
+	platformMap.insert( std::pair<cl_platform_id, Persistent<Object>*>( handle, &platform->handle_) );
+
+	return platformObject;
 }
 
 bool Platform::IsPlatform( Handle<Value> value ){
@@ -82,21 +100,9 @@ Local<Array> Platform::GetPlatforms(){
 	for( unsigned int i=0; i<numPlatforms; i++ ){
 		platforms->Set( i, GetPlatformByID( ids[i] ));
 	}
+	delete[] ids;
 
 	return platforms;
-}
-
-Local<Object> Platform::New( cl_platform_id handle ){
-	Platform* platform = new Platform( handle );
-
-	guardNew = FALSE;
-	Local<Object> platformObject = constructorTemplate->GetFunction()->NewInstance();
-	guardNew = TRUE;
-	platform->Wrap( platformObject );
-
-	platformMap.insert( std::pair<cl_platform_id, Persistent<Object>*>( handle, &platform->handle_) );
-
-	return platformObject;
 }
 
 Handle<Object> Platform::GetPlatformByID( cl_platform_id handle ){
@@ -192,5 +198,12 @@ V8_INVOCATION_CALLBACK( Platform::getInfo ){
 V8_INVOCATION_CALLBACK( Platform::getDevices ){
 	HandleScope scope;
 
-	return scope.Close( Undefined() );
+	if( !(IsPlatform(args.This())) ){
+		//ThrowException( Exception::TypeError(String::New("Illegal invocation")));
+		return scope.Close( Undefined() );
+	}
+
+	Platform* platform = node::ObjectWrap::Unwrap<Platform>( args.This() );
+
+	return scope.Close( Device::GetDevices( platform, CL_DEVICE_TYPE_ALL ) );
 }
