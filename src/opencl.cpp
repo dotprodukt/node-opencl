@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "platform.hpp"
+#include "device.hpp"
 
 using namespace v8;
 
@@ -23,6 +24,7 @@ void Init( Handle<Object> exports ){
 	INIT_EXPORT_V8_FUNCTION( exports, getPlatforms )
 
 	Platform::Init( exports );
+	Device::Init( exports );
 
 	EXPORT_CL_ENUM( PLATFORM_PROFILE )
 	EXPORT_CL_ENUM( PLATFORM_VERSION )

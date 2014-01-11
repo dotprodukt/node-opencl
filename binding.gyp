@@ -4,6 +4,7 @@
 		"defines":[],
 		"sources":[
 			"src/platform.cpp",
+			"src/device.cpp",
 			"src/opencl.cpp"
 		],
 		"include_dirs":["C:/Program Files (x86)/AMD APP/include/"],
