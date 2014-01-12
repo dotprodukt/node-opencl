@@ -1,6 +1,8 @@
 #ifndef NODECL_COMMON_HPP
 #define NODECL_COMMON_HPP
 
+#include <node.h>
+
 #define SET_JS_ENUM( target, name ) target->Set(String::NewSymbol( #name ), Integer::New( name ), (PropertyAttribute)(ReadOnly|DontDelete|DontEnum) );
 
 #define V8_FUNCTION_PREFIX v8_function_
@@ -32,5 +34,17 @@ V8_FUNCTION_PREFIX##name->SetName( V8_SYMBOL_PREFIX##name );
 INIT_V8_FUNCTION( name )\
 V8_SET( target, V8_SYMBOL_PREFIX##name, V8_FUNCTION_PREFIX##name )\
 }
+
+
+/*struct Baton {
+	v8::Persistent<v8::Function> callback;
+	uv_async_t
+};*/
+
+struct WorkBaton {
+	uv_work_t task;
+	v8::Persistent<v8::Function> callback;
+	int error;
+};
 
 #endif
