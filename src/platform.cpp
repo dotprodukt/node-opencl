@@ -137,22 +137,19 @@ void after_getPlatforms_task( uv_work_t* task, int status ){
 
 	PlatformsBaton* baton = static_cast<PlatformsBaton*>(task->data);
 
-	int numArgs = 1;
-	if( baton->error == CL_SUCCESS && baton->platforms != NULL ){
-		numArgs += 1;
-	}
+	Handle<Value>* argv = new Handle<Value>[ 2 ];
 
-	Handle<Value>* argv = new Handle<Value>[ numArgs ];
-	if( numArgs == 2 ){
-		argv[0] = Undefined();
+	argv[0] = Integer::New( baton->error );
+
+	if( baton->error == CL_SUCCESS ){
 		argv[1] = arrayFromPlatformIDs( baton->numPlatforms, baton->platforms );
 	} else {
-		argv[0] = Integer::New( baton->error );
+		argv[1] = Undefined();
 	}
 
 	TryCatch trycatch;
 
-	baton->callback->Call( Context::GetCurrent()->Global(), numArgs, argv );
+	baton->callback->Call( Context::GetCurrent()->Global(), 2, argv );
 
 	if( trycatch.HasCaught() ){
 		ThrowException( trycatch.Exception() );

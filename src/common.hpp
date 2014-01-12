@@ -62,9 +62,9 @@ struct CLBaton: NodeBaton<uv_work_t> {
 	int error;
 
 	CLBaton(): NodeBaton<uv_work_t>(),
-		error(0) {}
+		error(CL_SUCCESS) {}
 	CLBaton( v8::Handle<v8::Function> callback ): NodeBaton<uv_work_t>( callback ),
-		error(0) {}
+		error(CL_SUCCESS) {}
 };
 
 #endif
