@@ -45,6 +45,13 @@ struct WorkBaton {
 	uv_work_t task;
 	v8::Persistent<v8::Function> callback;
 	int error;
+
+	WorkBaton() : error(0){ task.data = (void*)this; }
+	WorkBaton( v8::Handle<v8::Function> callback ): error(0), callback(v8::Persistent<v8::Function>::New( callback )){ task.data = (void*)this; }
+
+	~WorkBaton(){
+		callback.Dispose();
+	}
 };
 
 #endif

@@ -79,56 +79,69 @@ bool Platform::IsPlatform( Handle<Value> value ){
 }
 
 
+Local<Array> arrayFromPlatformIDs( cl_uint numPlatforms, cl_platform_id* platforms ){
+	Local<Array> arr = Array::New( numPlatforms );
+	for( int i=0; i<numPlatforms; i++ ){
+		arr->Set( i, Platform::GetPlatformByID( platforms[i] ) );
+	}
+	return arr;
+}
+
+cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
+	cl_int err = clGetPlatformIDs( 0, NULL, numPlatforms );
+	
+	if( err != CL_SUCCESS ){
+		*numPlatforms = 0;
+		*platforms = NULL;
+		return err;
+	}
+
+	*platforms = new cl_platform_id[ *numPlatforms ];
+	
+	err = clGetPlatformIDs( *numPlatforms, *platforms, NULL );
+	
+	if( err != CL_SUCCESS ){
+		delete[] *platforms;
+		*platforms = NULL;
+	}
+
+	return err;
+}
+
 struct GetPlatformsBaton : WorkBaton {
 	cl_uint numPlatforms;
 	cl_platform_id* platforms;
+
+	GetPlatformsBaton(): WorkBaton(), numPlatforms(0), platforms(NULL){ task.data = (void*)this; }
+	GetPlatformsBaton( Handle<Function> callback ): WorkBaton(callback), numPlatforms(0), platforms(NULL){ task.data = (void*)this; }
+
+	~GetPlatformsBaton(){
+		if( platforms != NULL ) delete[] platforms;
+	}
 };
 
-
+// called in thread from uv thread pool
 void getPlatforms_task( uv_work_t* task ){
 	GetPlatformsBaton* baton = static_cast<GetPlatformsBaton*>(task->data);
 
-	cl_uint numPlatforms;
-	cl_int err = clGetPlatformIDs( 0, NULL, &numPlatforms );
-
-	if( err != CL_SUCCESS ){
-		baton->error = err;
-		return;
-	}
-
-	cl_platform_id* ids = new cl_platform_id[ numPlatforms ];
-	err = clGetPlatformIDs( numPlatforms, ids, NULL );
-
-	if( err != CL_SUCCESS ){
-		delete[] ids;
-		baton->error = err;
-		return;
-	}
-
-	baton->numPlatforms = numPlatforms;
-	baton->platforms = ids;
+	baton->error = getPlatformIDs( &baton->numPlatforms, &baton->platforms );
 }
 
+// called in main thread
 void after_getPlatforms_task( uv_work_t* task, int status ){
 	HandleScope scope;
 
 	GetPlatformsBaton* baton = static_cast<GetPlatformsBaton*>(task->data);
 
 	int numArgs = 1;
-	if( baton->error == 0 && baton->platforms != NULL ){
+	if( baton->error == CL_SUCCESS && baton->platforms != NULL ){
 		numArgs += 1;
 	}
 
 	Handle<Value>* argv = new Handle<Value>[ numArgs ];
 	if( numArgs == 2 ){
 		argv[0] = Undefined();
-		Local<Array> args = Array::New( baton->numPlatforms );
-
-		for( int i=0; i<baton->numPlatforms; i++ ){
-			args->Set( i, Platform::GetPlatformByID( baton->platforms[i] ));
-		}
-
-		argv[1] = args;
+		argv[1] = arrayFromPlatformIDs( baton->numPlatforms, baton->platforms );
 	} else {
 		argv[0] = Integer::New( baton->error );
 	}
@@ -141,22 +154,12 @@ void after_getPlatforms_task( uv_work_t* task, int status ){
 		ThrowException( trycatch.Exception() );
 	}
 
-	baton->callback.Dispose();
-	delete[] baton->platforms;
 	delete baton;
 }
 
 void start_getPlatforms_task( Handle<Function> callback ){
-	HandleScope scope;
-
-	GetPlatformsBaton* baton = new GetPlatformsBaton();
-
-	baton->task.data = (void*)baton;
-	baton->callback = Persistent<Function>::New( callback );
-	baton->numPlatforms = 0;
-	baton->error = 0;
-	baton->platforms = NULL;
-
+	GetPlatformsBaton* baton = new GetPlatformsBaton( callback );
+	
 	uv_queue_work( uv_default_loop(), &baton->task, getPlatforms_task, after_getPlatforms_task );
 }
 
@@ -166,27 +169,13 @@ void Platform::GetPlatforms( Handle<Function> callback ){
 
 Local<Array> Platform::GetPlatforms(){
 	cl_uint numPlatforms;
-	cl_int err = clGetPlatformIDs( 0, NULL, &numPlatforms );
+	cl_platform_id* ids;
 
-	if( err != CL_SUCCESS ){
+	if( getPlatformIDs( &numPlatforms, &ids ) != CL_SUCCESS ){
 		// throw
 	}
 
-	cl_platform_id* ids = new cl_platform_id[ numPlatforms ];
-	err = clGetPlatformIDs( numPlatforms, ids, NULL );
-
-	if( err != CL_SUCCESS ){
-		// throw
-	}
-
-	Local<Array> platforms = Array::New( numPlatforms );
-
-	for( unsigned int i=0; i<numPlatforms; i++ ){
-		platforms->Set( i, GetPlatformByID( ids[i] ));
-	}
-	delete[] ids;
-
-	return platforms;
+	return arrayFromPlatformIDs( numPlatforms, ids );
 }
 
 Handle<Object> Platform::GetPlatformByID( cl_platform_id handle ){
