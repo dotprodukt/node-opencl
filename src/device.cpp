@@ -32,6 +32,7 @@ Device::~Device(){
 	SET_DEVICE_TYPE_ENUM_HLP( constructorTemplate, name )\
 	SET_DEVICE_TYPE_ENUM_HLP( prototype, name )
 
+
 void Device::Init( Handle<Object> exports ){
 	constructorTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(constructor) ));
 	constructorTemplate->SetClassName( String::NewSymbol( "CLDevice" ));
@@ -82,8 +83,15 @@ Handle<String> getErrorMessage_getDevices( cl_int error ){
 			return String::New("Out of host memory");
 			break;
 	}
+
+	return String::NewSymbol("Unknown error");
 }
 
+/**
+ * for some damn reason `type` becomes `type & 31` and so it can never be an
+ * invalid type mask, but we would like to actualy throw an error when this is
+ * wrong
+ */ 
 Handle<Value> Device::GetDevices( cl_platform_id platform, cl_device_type type ){
 	cl_uint numDevices;
 	cl_int err = clGetDeviceIDs( platform, type, 0, NULL, &numDevices );
