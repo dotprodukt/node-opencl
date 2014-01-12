@@ -36,6 +36,7 @@ public:
 	
 	static bool IsPlatform( Handle<Value> value );
 
+	static void GetPlatforms( Handle<Function> callback );
 	static Local<Array> GetPlatforms();
 	
 	static Handle<Object> GetPlatformByID( cl_platform_id handle );
