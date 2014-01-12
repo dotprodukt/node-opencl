@@ -112,16 +112,25 @@ struct PlatformsBaton : CLBaton<uv_work_t> {
 	cl_uint numPlatforms;
 	cl_platform_id* platforms;
 
-	PlatformsBaton(): CLBaton(),
+	PlatformsBaton(): CLBaton<uv_work_t>(),
 		numPlatforms(0),
 		platforms(NULL){}
-	PlatformsBaton( Handle<Function> callback ): CLBaton( callback ),
+	PlatformsBaton( Handle<Function> callback ): CLBaton<uv_work_t>( callback ),
 		numPlatforms(0),
 		platforms(NULL){}
 
 	~PlatformsBaton(){
 		if( platforms != NULL ) delete[] platforms;
 	}
+};
+
+struct PlatformInfoBaton : CLBaton<uv_work_t> {
+	Persistent<Object> platform;
+	cl_platform_info param;
+	size_t infoSize;
+	void* info;
+
+	//PlatformInfoBaton(): CLBaton()
 };
 
 // called in thread from uv thread pool
