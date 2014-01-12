@@ -90,7 +90,7 @@ Local<Array> arrayFromPlatformIDs( cl_uint numPlatforms, cl_platform_id* platfor
 cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
 	cl_int err = clGetPlatformIDs( 0, NULL, numPlatforms );
 	
-	if( err != CL_SUCCESS ){
+	if( err != CL_SUCCESS || *numPlatforms == 0 ){
 		*numPlatforms = 0;
 		*platforms = NULL;
 		return err;
