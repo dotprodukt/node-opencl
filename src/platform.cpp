@@ -108,21 +108,25 @@ cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
 	return err;
 }
 
-struct GetPlatformsBaton : WorkBaton {
+struct PlatformsBaton : CLBaton {
 	cl_uint numPlatforms;
 	cl_platform_id* platforms;
 
-	GetPlatformsBaton(): WorkBaton(), numPlatforms(0), platforms(NULL){ task.data = (void*)this; }
-	GetPlatformsBaton( Handle<Function> callback ): WorkBaton(callback), numPlatforms(0), platforms(NULL){ task.data = (void*)this; }
+	PlatformsBaton(): CLBaton(),
+		numPlatforms(0),
+		platforms(NULL) {}
+	PlatformsBaton( Handle<Function> callback ): CLBaton( callback ),
+		numPlatforms(0),
+		platforms(NULL) {}
 
-	~GetPlatformsBaton(){
+	~PlatformsBaton(){
 		if( platforms != NULL ) delete[] platforms;
 	}
 };
 
 // called in thread from uv thread pool
 void getPlatforms_task( uv_work_t* task ){
-	GetPlatformsBaton* baton = static_cast<GetPlatformsBaton*>(task->data);
+	PlatformsBaton* baton = static_cast<PlatformsBaton*>(task->data);
 
 	baton->error = getPlatformIDs( &baton->numPlatforms, &baton->platforms );
 }
@@ -131,7 +135,7 @@ void getPlatforms_task( uv_work_t* task ){
 void after_getPlatforms_task( uv_work_t* task, int status ){
 	HandleScope scope;
 
-	GetPlatformsBaton* baton = static_cast<GetPlatformsBaton*>(task->data);
+	PlatformsBaton* baton = static_cast<PlatformsBaton*>(task->data);
 
 	int numArgs = 1;
 	if( baton->error == CL_SUCCESS && baton->platforms != NULL ){
@@ -158,8 +162,8 @@ void after_getPlatforms_task( uv_work_t* task, int status ){
 }
 
 void start_getPlatforms_task( Handle<Function> callback ){
-	GetPlatformsBaton* baton = new GetPlatformsBaton( callback );
-	
+	PlatformsBaton* baton = new PlatformsBaton( callback );
+
 	uv_queue_work( uv_default_loop(), &baton->task, getPlatforms_task, after_getPlatforms_task );
 }
 

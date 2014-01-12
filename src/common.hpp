@@ -36,22 +36,35 @@ V8_SET( target, V8_SYMBOL_PREFIX##name, V8_FUNCTION_PREFIX##name )\
 }
 
 
-/*struct Baton {
+template<typename T>
+struct Baton {
+	T task;
+
+	Baton(){
+		task.data = (void*)this;
+	}
+};
+
+template<typename T>
+struct NodeBaton: Baton<T> {
 	v8::Persistent<v8::Function> callback;
-	uv_async_t
-};*/
 
-struct WorkBaton {
-	uv_work_t task;
-	v8::Persistent<v8::Function> callback;
-	int error;
+	NodeBaton(): Baton<T>() {}
+	NodeBaton( v8::Handle<v8::Function> callback ): Baton<T>(),
+		callback( v8::Persistent<v8::Function>::New( callback )) {}
 
-	WorkBaton() : error(0){ task.data = (void*)this; }
-	WorkBaton( v8::Handle<v8::Function> callback ): error(0), callback(v8::Persistent<v8::Function>::New( callback )){ task.data = (void*)this; }
-
-	~WorkBaton(){
+	~NodeBaton(){
 		callback.Dispose();
 	}
+};
+
+struct CLBaton: NodeBaton<uv_work_t> {
+	int error;
+
+	CLBaton(): NodeBaton<uv_work_t>(),
+		error(0) {}
+	CLBaton( v8::Handle<v8::Function> callback ): NodeBaton<uv_work_t>( callback ),
+		error(0) {}
 };
 
 #endif
