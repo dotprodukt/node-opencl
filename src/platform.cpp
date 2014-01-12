@@ -10,8 +10,6 @@ std::unordered_map<cl_platform_id, Persistent<Object>*> Platform::platformMap;
 
 bool guardNew = TRUE;
 
-#define SET_JS_ENUM( target, name ) target->Set(String::NewSymbol( #name ), Integer::New( name ), (PropertyAttribute)(ReadOnly|DontDelete|DontEnum) );
-
 #define SET_PLATFORM_ENUM_PAIR( name )\
 	SET_JS_ENUM( constructorTemplate, CL_PLATFORM_##name )\
 	SET_JS_ENUM( prototype, CL_PLATFORM_##name )
@@ -205,5 +203,16 @@ V8_INVOCATION_CALLBACK( Platform::getDevices ){
 
 	Platform* platform = node::ObjectWrap::Unwrap<Platform>( args.This() );
 
-	return scope.Close( Device::GetDevices( platform, CL_DEVICE_TYPE_ALL ) );
+	if( args.Length() ){
+		if( !args[0]->IsInt32() ){
+			ThrowException( Exception::TypeError(String::New("Expects device type")));
+			return scope.Close( Undefined() );
+		}
+
+		return scope.Close( Device::GetDevices( platform, args[0]->ToInt32()->Value() ) );
+	}
+
+
+
+	return scope.Close( Device::GetDevices( platform ) );
 }
