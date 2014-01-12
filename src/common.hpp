@@ -51,9 +51,9 @@ template<typename T>
 struct NodeBaton: Baton<T> {
 	v8::Persistent<v8::Function> callback;
 
-	NodeBaton(): Baton<T>() {}
+	NodeBaton(): Baton<T>(){}
 	NodeBaton( v8::Handle<v8::Function> callback ): Baton<T>(),
-		callback( v8::Persistent<v8::Function>::New( callback )) {}
+		callback( v8::Persistent<v8::Function>::New( callback )){}
 
 	~NodeBaton(){
 		callback.Dispose();
@@ -65,9 +65,9 @@ struct CLBaton: NodeBaton<T> {
 	int error;
 
 	CLBaton(): NodeBaton<T>(),
-		error(CL_SUCCESS) {}
+		error(CL_SUCCESS){}
 	CLBaton( v8::Handle<v8::Function> callback ): NodeBaton<T>( callback ),
-		error(CL_SUCCESS) {}
+		error(CL_SUCCESS){}
 };
 
 #endif

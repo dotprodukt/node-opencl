@@ -114,10 +114,10 @@ struct PlatformsBaton : CLBaton<uv_work_t> {
 
 	PlatformsBaton(): CLBaton(),
 		numPlatforms(0),
-		platforms(NULL) {}
+		platforms(NULL){}
 	PlatformsBaton( Handle<Function> callback ): CLBaton( callback ),
 		numPlatforms(0),
-		platforms(NULL) {}
+		platforms(NULL){}
 
 	~PlatformsBaton(){
 		if( platforms != NULL ) delete[] platforms;
