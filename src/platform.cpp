@@ -108,14 +108,14 @@ cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
 	return err;
 }
 
-struct PlatformsBaton : CLBaton<uv_work_t> {
+struct PlatformsBaton : CLWorkBaton {
 	cl_uint numPlatforms;
 	cl_platform_id* platforms;
 
-	PlatformsBaton(): CLBaton<uv_work_t>(),
+	PlatformsBaton(): CLWorkBaton(),
 		numPlatforms(0),
 		platforms(NULL){}
-	PlatformsBaton( Handle<Function> callback ): CLBaton<uv_work_t>( callback ),
+	PlatformsBaton( Handle<Function> callback ): CLWorkBaton( callback ),
 		numPlatforms(0),
 		platforms(NULL){}
 
@@ -124,19 +124,19 @@ struct PlatformsBaton : CLBaton<uv_work_t> {
 	}
 };
 
-struct PlatformInfoBaton : CLBaton<uv_work_t> {
+struct PlatformInfoBaton : CLWorkBaton {
 	Persistent<Object> platform;
 	cl_platform_info param;
 	size_t infoSize;
 	void* info;
 
-	PlatformInfoBaton(): CLBaton<uv_work_t>(),
+	PlatformInfoBaton(): CLWorkBaton(),
 		infoSize(0),
 		info(NULL){}
 	PlatformInfoBaton( Handle<Object> platform,
 		               cl_platform_info param,
 		               Handle<Function> callback ):
-		CLBaton<uv_work_t>( callback ),
+		CLWorkBaton( callback ),
 		platform(Persistent<Object>::New(platform)),
 		param(param),
 		infoSize(0),

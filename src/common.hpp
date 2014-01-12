@@ -70,4 +70,13 @@ struct CLBaton: NodeBaton<T> {
 		error(CL_SUCCESS){}
 };
 
+struct CLWorkBaton: CLBaton<uv_work_t>{
+	CLWorkBaton(): CLBaton<uv_work_t>(){}
+
+	CLWorkBaton( v8::Handle<v8::Function> callback ):
+		CLBaton<uv_work_t>( callback ){}
+};
+
+struct CLAsyncBaton: CLBaton<uv_async_t>{};
+
 #endif
