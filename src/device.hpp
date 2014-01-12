@@ -1,11 +1,8 @@
 #ifndef NODECL_DEVICE_HPP
 #define NODECL_DEVICE_HPP
 
-#include <v8.h>
-#include <node.h>
-#include <CL\cl.h>
-#include "platform.hpp"
 #include "common.hpp"
+#include "platform.hpp"
 
 using namespace v8;
 

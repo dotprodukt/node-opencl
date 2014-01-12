@@ -1,7 +1,9 @@
 #ifndef NODECL_COMMON_HPP
 #define NODECL_COMMON_HPP
 
+#include <v8.h>
 #include <node.h>
+#include <CL\cl.h>
 
 #define SET_JS_ENUM( target, name ) target->Set(String::NewSymbol( #name ), Integer::New( name ), (PropertyAttribute)(ReadOnly|DontDelete|DontEnum) );
 
@@ -58,12 +60,13 @@ struct NodeBaton: Baton<T> {
 	}
 };
 
-struct CLBaton: NodeBaton<uv_work_t> {
+template<typename T>
+struct CLBaton: NodeBaton<T> {
 	int error;
 
-	CLBaton(): NodeBaton<uv_work_t>(),
+	CLBaton(): NodeBaton<T>(),
 		error(CL_SUCCESS) {}
-	CLBaton( v8::Handle<v8::Function> callback ): NodeBaton<uv_work_t>( callback ),
+	CLBaton( v8::Handle<v8::Function> callback ): NodeBaton<T>( callback ),
 		error(CL_SUCCESS) {}
 };
 

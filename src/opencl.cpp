@@ -1,6 +1,3 @@
-#include <v8.h>
-#include <node.h>
-
 #include "common.hpp"
 #include "platform.hpp"
 #include "device.hpp"

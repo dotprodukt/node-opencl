@@ -108,7 +108,7 @@ cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
 	return err;
 }
 
-struct PlatformsBaton : CLBaton {
+struct PlatformsBaton : CLBaton<uv_work_t> {
 	cl_uint numPlatforms;
 	cl_platform_id* platforms;
 

@@ -1,11 +1,8 @@
 #ifndef NODECL_PLATFORM_HPP
 #define NODECL_PLATFORM_HPP
 
-#include <v8.h>
-#include <node.h>
-#include <CL\cl.h>
-#include <unordered_map>
 #include "common.hpp"
+#include <unordered_map>
 
 using namespace v8;
 
