@@ -18,6 +18,48 @@ bool guardNew = TRUE;
 
 #define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name )
 
+
+struct PlatformsBaton : CLWorkBaton {
+	cl_uint numPlatforms;
+	cl_platform_id* platforms;
+
+	PlatformsBaton(): CLWorkBaton(),
+		numPlatforms(0),
+		platforms(NULL){}
+	PlatformsBaton( Handle<Function> callback ): CLWorkBaton( callback ),
+		numPlatforms(0),
+		platforms(NULL){}
+
+	~PlatformsBaton(){
+		if( platforms != NULL ) delete[] platforms;
+	}
+};
+
+struct PlatformInfoBaton : CLWorkBaton {
+	Persistent<Object> platform;
+	cl_platform_info param;
+	size_t infoSize;
+	void* info;
+
+	PlatformInfoBaton(): CLWorkBaton(),
+		infoSize(0),
+		info(NULL){}
+	PlatformInfoBaton( Handle<Object> platform,
+		               cl_platform_info param,
+		               Handle<Function> callback ):
+		CLWorkBaton( callback ),
+		platform(Persistent<Object>::New(platform)),
+		param(param),
+		infoSize(0),
+		info(NULL){}
+
+	~PlatformInfoBaton(){
+		platform.Dispose();
+		if( info != NULL ) delete[] info;
+	}
+};
+
+
 Platform::Platform( cl_platform_id handle ){
 	clHandle = handle;
 }
@@ -107,46 +149,6 @@ cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
 
 	return err;
 }
-
-struct PlatformsBaton : CLWorkBaton {
-	cl_uint numPlatforms;
-	cl_platform_id* platforms;
-
-	PlatformsBaton(): CLWorkBaton(),
-		numPlatforms(0),
-		platforms(NULL){}
-	PlatformsBaton( Handle<Function> callback ): CLWorkBaton( callback ),
-		numPlatforms(0),
-		platforms(NULL){}
-
-	~PlatformsBaton(){
-		if( platforms != NULL ) delete[] platforms;
-	}
-};
-
-struct PlatformInfoBaton : CLWorkBaton {
-	Persistent<Object> platform;
-	cl_platform_info param;
-	size_t infoSize;
-	void* info;
-
-	PlatformInfoBaton(): CLWorkBaton(),
-		infoSize(0),
-		info(NULL){}
-	PlatformInfoBaton( Handle<Object> platform,
-		               cl_platform_info param,
-		               Handle<Function> callback ):
-		CLWorkBaton( callback ),
-		platform(Persistent<Object>::New(platform)),
-		param(param),
-		infoSize(0),
-		info(NULL){}
-
-	~PlatformInfoBaton(){
-		platform.Dispose();
-		if( info != NULL ) delete[] info;
-	}
-};
 
 // called in thread from uv thread pool
 void getPlatforms_task( uv_work_t* task ){
