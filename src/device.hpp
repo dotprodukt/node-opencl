@@ -31,8 +31,8 @@ public:
 
 	static bool IsDevice( Handle<Value> value );
 
-	static Local<Array> GetDevices( cl_platform_id platform, cl_device_type type = CL_DEVICE_TYPE_ALL );
-	static Local<Array> GetDevices( Platform* platform, cl_device_type type = CL_DEVICE_TYPE_ALL );
+	static Handle<Value> GetDevices( cl_platform_id platform, cl_device_type type = CL_DEVICE_TYPE_ALL );
+	static Handle<Value> GetDevices( Platform* platform, cl_device_type type = CL_DEVICE_TYPE_ALL );
 
 	static Handle<Object> GetDeviceByID( cl_device_id handle );
 };

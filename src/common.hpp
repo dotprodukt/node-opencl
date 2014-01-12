@@ -1,6 +1,8 @@
 #ifndef NODECL_COMMON_HPP
 #define NODECL_COMMON_HPP
 
+#define SET_JS_ENUM( target, name ) target->Set(String::NewSymbol( #name ), Integer::New( name ), (PropertyAttribute)(ReadOnly|DontDelete|DontEnum) );
+
 #define V8_FUNCTION_PREFIX v8_function_
 #define V8_SYMBOL_PREFIX v8_symbol_
 
