@@ -130,7 +130,22 @@ struct PlatformInfoBaton : CLBaton<uv_work_t> {
 	size_t infoSize;
 	void* info;
 
-	//PlatformInfoBaton(): CLBaton()
+	PlatformInfoBaton(): CLBaton<uv_work_t>(),
+		infoSize(0),
+		info(NULL){}
+	PlatformInfoBaton( Handle<Object> platform,
+		               cl_platform_info param,
+		               Handle<Function> callback ):
+		CLBaton<uv_work_t>( callback ),
+		platform(Persistent<Object>::New(platform)),
+		param(param),
+		infoSize(0),
+		info(NULL){}
+
+	~PlatformInfoBaton(){
+		platform.Dispose();
+		if( info != NULL ) delete[] info;
+	}
 };
 
 // called in thread from uv thread pool
