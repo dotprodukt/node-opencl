@@ -44,6 +44,6 @@ void Init( Handle<Object> exports ){
 }
 
 
-};
+}
 
-NODE_MODULE( opencl, nwcl::Init )
+NODE_MODULE( nwcl, nwcl::Init )

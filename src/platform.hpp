@@ -27,6 +27,6 @@ public:
 	static Local<Array> GetPlatforms();
 };
 	
-};
+}
 
 #endif

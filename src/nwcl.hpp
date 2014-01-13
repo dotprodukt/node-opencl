@@ -4,7 +4,11 @@
 #include <v8.h>
 #include <CL/cl.h>
 
+namespace nwcl {
+
 using namespace v8;
+
+namespace internal {
 
 template<typename T>
 struct CLHandles {
@@ -30,5 +34,7 @@ struct CLHandles {
 
 	T Get( cl_uint index );
 };
+
+}}
 
 #endif

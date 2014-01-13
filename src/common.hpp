@@ -37,6 +37,8 @@ INIT_V8_FUNCTION( name )\
 V8_SET( target, V8_SYMBOL_PREFIX##name, V8_FUNCTION_PREFIX##name )\
 }
 
+namespace nwcl {
+namespace internal {
 
 template<typename T>
 struct Baton {
@@ -81,5 +83,7 @@ struct CLAsyncBaton: CLBaton<uv_async_t>{
 	CLAsyncBaton( v8::Handle<v8::Function> callback ):
 		CLBaton<uv_async_t>( callback ){}
 };
+
+}}
 
 #endif

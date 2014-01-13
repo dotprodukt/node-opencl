@@ -1,4 +1,4 @@
 {
 	"name": "nwcl",
-	"main": "opencl.js"
+	"main": "nwcl.js"
 }

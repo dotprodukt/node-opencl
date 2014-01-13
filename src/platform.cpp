@@ -20,11 +20,7 @@ namespace internal {
 std::unordered_map<cl_platform_id, Persistent<Object>*> CLPlatformMap;
 Persistent<FunctionTemplate> CLPlatformTemplate;
 
-
 typedef CLHandles<cl_platform_id> PlatformIDs;
-
-
-
 
 struct PlatformsBaton : CLWorkBaton {
 	PlatformIDs ids;
@@ -73,8 +69,7 @@ Handle<String> getErrorMessage_getInfo( cl_int error ){
 	return String::NewSymbol("Unknown error");
 }
 
-};
-};
+}}
 
 using namespace nwcl::internal;
 
