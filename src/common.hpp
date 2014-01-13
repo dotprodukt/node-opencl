@@ -3,7 +3,7 @@
 
 #include <v8.h>
 #include <node.h>
-#include "opencl.hpp"
+#include "nwcl.hpp"
 
 #define SET_JS_ENUM( target, name ) target->Set(String::NewSymbol( #name ), Integer::New( name ), (PropertyAttribute)(ReadOnly|DontDelete|DontEnum) );
 

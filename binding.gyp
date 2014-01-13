@@ -1,11 +1,11 @@
 {
 	"targets":[{
-		"target_name":"opencl",
+		"target_name":"nwcl",
 		"defines":[],
 		"sources":[
 			"src/platform.cpp",
 			"src/device.cpp",
-			"src/opencl.cpp"
+			"src/nwcl.cpp"
 		],
 		"include_dirs":["C:/Program Files (x86)/AMD APP/include/"],
 		"link_settings":{
