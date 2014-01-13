@@ -13,7 +13,10 @@
 #define V8_INVOCATION_CALLBACK_PREFIX v8_invocation_callback_
 #define V8_INVOCATION_CALLBACK_SUFFIX _invocation_callback
 
-#define V8_INVOCATION_CALLBACK_NAME( name ) name##V8_INVOCATION_CALLBACK_SUFFIX
+#define CONCAT0(x,y) x##y
+#define CONCAT(x,y) CONCAT0(x,y)
+
+#define V8_INVOCATION_CALLBACK_NAME( name ) CONCAT( name, V8_INVOCATION_CALLBACK_SUFFIX )
 
 #define V8_INVOCATION_CALLBACK( name ) v8::Handle<v8::Value> V8_INVOCATION_CALLBACK_NAME( name )( const v8::Arguments& args )
 
@@ -26,15 +29,15 @@ function->SetName( symbol );\
 target->Set( symbol, function );\
 }
 
-#define INIT_V8_FUNCTION( name ) Local<Function> V8_FUNCTION_PREFIX##name = FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(name) )->GetFunction();\
-Local<String> V8_SYMBOL_PREFIX##name = String::NewSymbol( #name );\
-V8_FUNCTION_PREFIX##name->SetName( V8_SYMBOL_PREFIX##name );
+#define INIT_V8_FUNCTION( name, pfx ) Local<Function> CONCAT(V8_FUNCTION_PREFIX,pfx##name) = FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(pfx##name) )->GetFunction();\
+	Local<String> CONCAT(V8_SYMBOL_PREFIX,pfx##name) = String::NewSymbol( #name );\
+	CONCAT(V8_FUNCTION_PREFIX,pfx##name)->SetName( CONCAT(V8_SYMBOL_PREFIX,pfx##name) );
 
 #define EXPORT_V8_FUNCTION( target, name, value ) V8_SET( target, String::NewSymbol( #name ), value )
 
-#define INIT_EXPORT_V8_FUNCTION( target, name ){\
-INIT_V8_FUNCTION( name )\
-V8_SET( target, V8_SYMBOL_PREFIX##name, V8_FUNCTION_PREFIX##name )\
+#define INIT_EXPORT_V8_FUNCTION( target, name, pfx ){\
+INIT_V8_FUNCTION( name, pfx )\
+	V8_SET( target, CONCAT(V8_SYMBOL_PREFIX,pfx##name), CONCAT(V8_FUNCTION_PREFIX,pfx##name) )\
 }
 
 namespace nwcl {

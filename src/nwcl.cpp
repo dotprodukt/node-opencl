@@ -12,7 +12,7 @@ using namespace v8;
 namespace nwcl {
 
 
-V8_INVOCATION_CALLBACK( getPlatforms ){
+V8_INVOCATION_CALLBACK( nwcl_getPlatforms ){
 	HandleScope scope;
 
 	if( args.Length() ){
@@ -30,7 +30,7 @@ V8_INVOCATION_CALLBACK( getPlatforms ){
 }
 
 void Init( Handle<Object> exports ){
-	INIT_EXPORT_V8_FUNCTION( exports, getPlatforms )
+	INIT_EXPORT_V8_FUNCTION( exports, getPlatforms, nwcl_ )
 
 	Platform::Init( exports );
 	Device::Init( exports );

@@ -11,9 +11,11 @@ bool guardNewPlatform = TRUE;
 	SET_JS_ENUM( CLPlatformTemplate, CL_PLATFORM_##name )\
 	SET_JS_ENUM( prototype, CL_PLATFORM_##name )
 
-#define PLATFORM_CLASS_METHOD( name ) INIT_EXPORT_V8_FUNCTION( CLPlatformTemplate, name )
+#define PLATFORM_CLASS_METHOD( name ) INIT_EXPORT_V8_FUNCTION( CLPlatformTemplate, name, platform_ )
 
-#define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name )
+#define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name, platform_ )
+
+#define PLATFORM_INVOCATION_CALLBACK( name ) V8_INVOCATION_CALLBACK( platform_##name )
 
 namespace nwcl {
 namespace internal {
@@ -95,12 +97,12 @@ cl_platform_id Platform::GetID(){
 }
 
 
-V8_INVOCATION_CALLBACK( isPlatform ){
+PLATFORM_INVOCATION_CALLBACK( isPlatform ){
 	HandleScope scope;
 	return scope.Close( Boolean::New( Platform::IsPlatform(args[0]) ));
 }
 
-V8_INVOCATION_CALLBACK( constructor ){
+PLATFORM_INVOCATION_CALLBACK( constructor ){
 	HandleScope scope;
 
 	if( guardNewPlatform ){
@@ -111,7 +113,7 @@ V8_INVOCATION_CALLBACK( constructor ){
 	return scope.Close( args.This() );
 }
 
-V8_INVOCATION_CALLBACK( getInfo ){
+PLATFORM_INVOCATION_CALLBACK( getInfo ){
 	HandleScope scope;
 
 	if( !args.Length() ){
@@ -158,7 +160,7 @@ V8_INVOCATION_CALLBACK( getInfo ){
 	return scope.Close( infoString );
 }
 
-V8_INVOCATION_CALLBACK( getDevices ){
+PLATFORM_INVOCATION_CALLBACK( getDevices ){
 	HandleScope scope;
 
 	if( !(Platform::IsPlatform(args.This())) ){
@@ -184,7 +186,7 @@ V8_INVOCATION_CALLBACK( getDevices ){
 
 
 void Platform::Init( Handle<Object> exports ){
-	CLPlatformTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(constructor) ));
+	CLPlatformTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(platform_constructor) ));
 	CLPlatformTemplate->SetClassName( String::NewSymbol( "CLPlatform" ));
 	CLPlatformTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 	Handle<ObjectTemplate> prototype = CLPlatformTemplate->PrototypeTemplate();
