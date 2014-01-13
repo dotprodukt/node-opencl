@@ -15,19 +15,16 @@ private:
 	~Platform();
 
 public:
-	cl_platform_id GetID();
-
 	static void Init( Handle<Object> exports );
 
-	static Local<Object> New( cl_platform_id handle );
+	static Handle<Object> New( cl_platform_id handle );
 	
+	cl_platform_id GetID();
+
 	static bool IsPlatform( Handle<Value> value );
 
 	static void GetPlatforms( Handle<Function> callback );
 	static Local<Array> GetPlatforms();
-	
-	static Handle<Object> GetPlatformByID( cl_platform_id handle );
-
 };
 	
 };

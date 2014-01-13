@@ -5,7 +5,7 @@
 #include <iostream>
 using namespace nodecl;
 
-bool guardNew = TRUE;
+bool guardNewPlatform = TRUE;
 
 #define SET_PLATFORM_ENUM_PAIR( name )\
 	SET_JS_ENUM( CLPlatformTemplate, CL_PLATFORM_##name )\
@@ -112,7 +112,7 @@ V8_INVOCATION_CALLBACK( isPlatform ){
 V8_INVOCATION_CALLBACK( constructor ){
 	HandleScope scope;
 
-	if( guardNew ){
+	if( guardNewPlatform ){
 		ThrowException( Exception::TypeError(String::New("Illegal constructor")) );
 		return scope.Close( Undefined() );
 	}
@@ -211,20 +211,27 @@ void Platform::Init( Handle<Object> exports ){
 
 	exports->Set( String::NewSymbol("Platform"), CLPlatformTemplate->GetFunction());
 
-	//guardNew = TRUE;
+	//guardNewPlatform = TRUE;
 }
 
-Local<Object> Platform::New( cl_platform_id handle ){
-	Platform* platform = new Platform( handle );
+Handle<Object> Platform::New( cl_platform_id handle ){
+	std::unordered_map<cl_platform_id, Persistent<Object>*>::const_iterator pair
+		= CLPlatformMap.find( handle );
 
-	guardNew = FALSE;
-	Local<Object> platformObject = CLPlatformTemplate->GetFunction()->NewInstance();
-	guardNew = TRUE;
-	platform->Wrap( platformObject );
+	if( pair == CLPlatformMap.end() ){
+		Platform* platform = new Platform( handle );
 
-	CLPlatformMap.insert( std::pair<cl_platform_id, Persistent<Object>*>( handle, &platform->handle_) );
+		guardNewPlatform = FALSE;
+		Local<Object> platformObject = CLPlatformTemplate->GetFunction()->NewInstance();
+		guardNewPlatform = TRUE;
+		platform->Wrap( platformObject );
 
-	return platformObject;
+		CLPlatformMap.insert( std::pair<cl_platform_id, Persistent<Object>*>( handle, &(platform->handle_)) );
+
+		return platformObject;
+	}
+
+	return *(pair->second);
 }
 
 bool Platform::IsPlatform( Handle<Value> value ){
@@ -235,7 +242,7 @@ bool Platform::IsPlatform( Handle<Value> value ){
 Local<Array> arrayFromPlatformIDs( cl_uint numPlatforms, cl_platform_id* platforms ){
 	Local<Array> arr = Array::New( numPlatforms );
 	for( int i=0; i<numPlatforms; i++ ){
-		arr->Set( i, Platform::GetPlatformByID( platforms[i] ) );
+		arr->Set( i, Platform::New( platforms[i] ) );
 	}
 	return arr;
 }
@@ -314,15 +321,4 @@ Local<Array> Platform::GetPlatforms(){
 	}
 
 	return arrayFromPlatformIDs( numPlatforms, ids );
-}
-
-Handle<Object> Platform::GetPlatformByID( cl_platform_id handle ){
-	std::unordered_map<cl_platform_id, Persistent<Object>*>::const_iterator pair
-		= CLPlatformMap.find( handle );
-
-	if( pair == CLPlatformMap.end() ){
-		return Platform::New( handle );
-	}
-
-	return *pair->second;
 }
