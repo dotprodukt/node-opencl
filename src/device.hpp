@@ -3,6 +3,7 @@
 
 #include "common.hpp"
 #include "platform.hpp"
+#include <unordered_map>
 
 using namespace v8;
 

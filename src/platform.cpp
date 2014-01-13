@@ -1,23 +1,25 @@
 #include "common.hpp"
 #include "platform.hpp"
 #include "device.hpp"
+#include <unordered_map>
 #include <iostream>
-
 using namespace nodecl;
 
-Persistent<FunctionTemplate> Platform::constructorTemplate;
-std::unordered_map<cl_platform_id, Persistent<Object>*> Platform::platformMap;
+//Persistent<FunctionTemplate> Platform::CLPlatformTemplate;
 
 bool guardNew = TRUE;
 
 #define SET_PLATFORM_ENUM_PAIR( name )\
-	SET_JS_ENUM( constructorTemplate, CL_PLATFORM_##name )\
+	SET_JS_ENUM( CLPlatformTemplate, CL_PLATFORM_##name )\
 	SET_JS_ENUM( prototype, CL_PLATFORM_##name )
 
-#define PLATFORM_CLASS_METHOD( name ) INIT_EXPORT_V8_FUNCTION( constructorTemplate, name )
+#define PLATFORM_CLASS_METHOD( name ) INIT_EXPORT_V8_FUNCTION( CLPlatformTemplate, name )
 
 #define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name )
 
+
+std::unordered_map<cl_platform_id, Persistent<Object>*> CLPlatformMap;
+Persistent<FunctionTemplate> CLPlatformTemplate;
 
 
 struct PlatformsBaton : CLWorkBaton {
@@ -82,13 +84,13 @@ Platform::Platform( cl_platform_id handle ){
 
 Platform::~Platform(){
 	std::unordered_map<cl_platform_id, Persistent<Object>*>::const_iterator pair
-		= platformMap.find( clHandle );
+		= CLPlatformMap.find( clHandle );
 
-	if( pair == platformMap.end() ){
+	if( pair == CLPlatformMap.end() ){
 		std::cout << "Redundant released of CLPlatform wrapper.\n";
 	}
 
-	platformMap.erase( clHandle );
+	CLPlatformMap.erase( clHandle );
 
 	std::cout << "Released CLPlatform wrapper.\n";
 }
@@ -187,10 +189,10 @@ V8_INVOCATION_CALLBACK( getDevices ){
 
 
 void Platform::Init( Handle<Object> exports ){
-	constructorTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(constructor) ));
-	constructorTemplate->SetClassName( String::NewSymbol( "CLPlatform" ));
-	constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-	Handle<ObjectTemplate> prototype = constructorTemplate->PrototypeTemplate();
+	CLPlatformTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(constructor) ));
+	CLPlatformTemplate->SetClassName( String::NewSymbol( "CLPlatform" ));
+	CLPlatformTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+	Handle<ObjectTemplate> prototype = CLPlatformTemplate->PrototypeTemplate();
 
 	SET_PLATFORM_ENUM_PAIR( PROFILE )
 	SET_PLATFORM_ENUM_PAIR( VERSION )
@@ -203,7 +205,7 @@ void Platform::Init( Handle<Object> exports ){
 	PLATFORM_PROTOTYPE_METHOD( getInfo )
 	PLATFORM_PROTOTYPE_METHOD( getDevices )
 
-	exports->Set( String::NewSymbol("Platform"), constructorTemplate->GetFunction());
+	exports->Set( String::NewSymbol("Platform"), CLPlatformTemplate->GetFunction());
 
 	//guardNew = TRUE;
 }
@@ -212,17 +214,17 @@ Local<Object> Platform::New( cl_platform_id handle ){
 	Platform* platform = new Platform( handle );
 
 	guardNew = FALSE;
-	Local<Object> platformObject = constructorTemplate->GetFunction()->NewInstance();
+	Local<Object> platformObject = CLPlatformTemplate->GetFunction()->NewInstance();
 	guardNew = TRUE;
 	platform->Wrap( platformObject );
 
-	platformMap.insert( std::pair<cl_platform_id, Persistent<Object>*>( handle, &platform->handle_) );
+	CLPlatformMap.insert( std::pair<cl_platform_id, Persistent<Object>*>( handle, &platform->handle_) );
 
 	return platformObject;
 }
 
 bool Platform::IsPlatform( Handle<Value> value ){
-	return constructorTemplate->HasInstance( value );
+	return CLPlatformTemplate->HasInstance( value );
 }
 
 
@@ -312,9 +314,9 @@ Local<Array> Platform::GetPlatforms(){
 
 Handle<Object> Platform::GetPlatformByID( cl_platform_id handle ){
 	std::unordered_map<cl_platform_id, Persistent<Object>*>::const_iterator pair
-		= platformMap.find( handle );
+		= CLPlatformMap.find( handle );
 
-	if( pair == platformMap.end() ){
+	if( pair == CLPlatformMap.end() ){
 		return Platform::New( handle );
 	}
 

@@ -2,7 +2,6 @@
 #define NODECL_PLATFORM_HPP
 
 #include "common.hpp"
-#include <unordered_map>
 
 using namespace v8;
 
@@ -10,9 +9,6 @@ namespace nodecl {
 
 class Platform : public node::ObjectWrap {
 private:
-	static Persistent<FunctionTemplate> constructorTemplate;
-	static std::unordered_map<cl_platform_id, Persistent<Object>*> platformMap;
-
 	cl_platform_id clHandle;
 
 	Platform( cl_platform_id handle );
