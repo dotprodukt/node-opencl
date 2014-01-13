@@ -1,5 +1,5 @@
-#ifndef NODECL_COMMON_HPP
-#define NODECL_COMMON_HPP
+#ifndef NWCL_COMMON_HPP
+#define NWCL_COMMON_HPP
 
 #include <v8.h>
 #include <node.h>

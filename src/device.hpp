@@ -1,5 +1,5 @@
-#ifndef NODECL_DEVICE_HPP
-#define NODECL_DEVICE_HPP
+#ifndef NWCL_DEVICE_HPP
+#define NWCL_DEVICE_HPP
 
 #include "common.hpp"
 #include "platform.hpp"
@@ -7,7 +7,7 @@
 
 using namespace v8;
 
-namespace nodecl {
+namespace nwcl {
 
 class Device : public node::ObjectWrap {
 private:

@@ -3,7 +3,7 @@
 #include "device.hpp"
 #include <unordered_map>
 #include <iostream>
-using namespace nodecl;
+using namespace nwcl;
 
 bool guardNewPlatform = TRUE;
 
@@ -15,7 +15,7 @@ bool guardNewPlatform = TRUE;
 
 #define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name )
 
-namespace nodecl {
+namespace nwcl {
 namespace internal {
 std::unordered_map<cl_platform_id, Persistent<Object>*> CLPlatformMap;
 Persistent<FunctionTemplate> CLPlatformTemplate;
@@ -76,7 +76,7 @@ Handle<String> getErrorMessage_getInfo( cl_int error ){
 };
 };
 
-using namespace nodecl::internal;
+using namespace nwcl::internal;
 
 Platform::Platform( cl_platform_id handle ){
 	clHandle = handle;

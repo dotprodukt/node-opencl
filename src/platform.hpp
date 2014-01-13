@@ -1,11 +1,11 @@
-#ifndef NODECL_PLATFORM_HPP
-#define NODECL_PLATFORM_HPP
+#ifndef NWCL_PLATFORM_HPP
+#define NWCL_PLATFORM_HPP
 
 #include "common.hpp"
 
 using namespace v8;
 
-namespace nodecl {
+namespace nwcl {
 
 class Platform : public node::ObjectWrap {
 private:

@@ -2,7 +2,7 @@
 #include "device.hpp"
 #include <iostream>
 
-using namespace nodecl;
+using namespace nwcl;
 
 Persistent<FunctionTemplate> Device::constructorTemplate;
 std::unordered_map<cl_device_id, Persistent<Object>*> Device::deviceMap;

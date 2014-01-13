@@ -9,7 +9,7 @@ using namespace v8;
 
 #define EXPORT_CL_ENUM( name ) SET_CL_ENUM( exports, name )
 
-namespace nodecl {
+namespace nwcl {
 
 
 V8_INVOCATION_CALLBACK( getPlatforms ){
@@ -46,4 +46,4 @@ void Init( Handle<Object> exports ){
 
 };
 
-NODE_MODULE( opencl, nodecl::Init )
+NODE_MODULE( opencl, nwcl::Init )
