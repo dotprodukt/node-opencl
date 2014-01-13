@@ -5,8 +5,6 @@
 #include <iostream>
 using namespace nodecl;
 
-//Persistent<FunctionTemplate> Platform::CLPlatformTemplate;
-
 bool guardNew = TRUE;
 
 #define SET_PLATFORM_ENUM_PAIR( name )\
@@ -17,7 +15,8 @@ bool guardNew = TRUE;
 
 #define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name )
 
-
+namespace nodecl {
+namespace internal {
 std::unordered_map<cl_platform_id, Persistent<Object>*> CLPlatformMap;
 Persistent<FunctionTemplate> CLPlatformTemplate;
 
@@ -77,6 +76,11 @@ Handle<String> getErrorMessage_getInfo( cl_int error ){
 
 	return String::NewSymbol("Unknown error");
 }
+
+};
+};
+
+using namespace nodecl::internal;
 
 Platform::Platform( cl_platform_id handle ){
 	clHandle = handle;
