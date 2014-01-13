@@ -21,20 +21,16 @@ std::unordered_map<cl_platform_id, Persistent<Object>*> CLPlatformMap;
 Persistent<FunctionTemplate> CLPlatformTemplate;
 
 
+typedef CLHandles<cl_platform_id> PlatformIDs;
+
+
+
+
 struct PlatformsBaton : CLWorkBaton {
-	cl_uint numPlatforms;
-	cl_platform_id* platforms;
+	PlatformIDs ids;
 
-	PlatformsBaton(): CLWorkBaton(),
-		numPlatforms(0),
-		platforms(NULL){}
-	PlatformsBaton( Handle<Function> callback ): CLWorkBaton( callback ),
-		numPlatforms(0),
-		platforms(NULL){}
-
-	~PlatformsBaton(){
-		if( platforms != NULL ) delete[] platforms;
-	}
+	PlatformsBaton(): CLWorkBaton(){}
+	PlatformsBaton( Handle<Function> callback ): CLWorkBaton( callback ){}
 };
 
 struct PlatformInfoBaton : CLWorkBaton {
@@ -247,22 +243,22 @@ Local<Array> arrayFromPlatformIDs( cl_uint numPlatforms, cl_platform_id* platfor
 	return arr;
 }
 
-cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
-	cl_int err = clGetPlatformIDs( 0, NULL, numPlatforms );
+cl_int getPlatformIDs( PlatformIDs* ids ){
+	cl_int err = clGetPlatformIDs( 0, NULL, &ids->length );
 	
-	if( err != CL_SUCCESS || *numPlatforms == 0 ){
-		*numPlatforms = 0;
-		*platforms = NULL;
+	if( err != CL_SUCCESS || ids->length == 0 ){
+		ids->elements = NULL;
 		return err;
 	}
 
-	*platforms = new cl_platform_id[ *numPlatforms ];
+	ids->elements = new cl_platform_id[ ids->length ];
 	
-	err = clGetPlatformIDs( *numPlatforms, *platforms, NULL );
+	err = clGetPlatformIDs( ids->length, ids->elements, NULL );
 	
 	if( err != CL_SUCCESS ){
-		delete[] *platforms;
-		*platforms = NULL;
+		ids->length = 0;
+		delete[] ids->elements;
+		ids->elements = NULL;
 	}
 
 	return err;
@@ -272,7 +268,7 @@ cl_int getPlatformIDs( cl_uint* numPlatforms, cl_platform_id** platforms ){
 void getPlatforms_task( uv_work_t* task ){
 	PlatformsBaton* baton = static_cast<PlatformsBaton*>(task->data);
 
-	baton->error = getPlatformIDs( &baton->numPlatforms, &baton->platforms );
+	baton->error = getPlatformIDs( &baton->ids );
 }
 
 // called in main thread
@@ -286,7 +282,7 @@ void after_getPlatforms_task( uv_work_t* task, int status ){
 	argv[0] = Integer::New( baton->error );
 
 	if( baton->error == CL_SUCCESS ){
-		argv[1] = arrayFromPlatformIDs( baton->numPlatforms, baton->platforms );
+		argv[1] = baton->ids.ToArray<Platform>();
 	} else {
 		argv[1] = Undefined();
 	}
@@ -313,12 +309,11 @@ void Platform::GetPlatforms( Handle<Function> callback ){
 }
 
 Local<Array> Platform::GetPlatforms(){
-	cl_uint numPlatforms;
-	cl_platform_id* ids;
+	PlatformIDs ids;
 
-	if( getPlatformIDs( &numPlatforms, &ids ) != CL_SUCCESS ){
+	if( getPlatformIDs( &ids ) != CL_SUCCESS ){
 		// throw
 	}
 
-	return arrayFromPlatformIDs( numPlatforms, ids );
+	return ids.ToArray<Platform>();
 }
