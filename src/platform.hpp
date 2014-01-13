@@ -15,7 +15,7 @@ private:
 	~Platform();
 
 public:
-	cl_platform_id GetHandle();
+	cl_platform_id GetID();
 
 	static void Init( Handle<Object> exports );
 

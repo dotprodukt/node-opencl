@@ -124,7 +124,7 @@ Handle<Value> Device::GetDevices( cl_platform_id platform, cl_device_type type )
 }
 
 Handle<Value> Device::GetDevices( Platform* platform, cl_device_type type ){
-	return GetDevices( platform->GetHandle(), type );
+	return GetDevices( platform->GetID(), type );
 }
 
 Handle<Object> Device::GetDeviceByID( cl_device_id handle ){

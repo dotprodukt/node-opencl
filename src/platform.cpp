@@ -99,7 +99,7 @@ Platform::~Platform(){
 	std::cout << "Released CLPlatform wrapper.\n";
 }
 
-cl_platform_id Platform::GetHandle(){
+cl_platform_id Platform::GetID(){
 	return clHandle;
 }
 
@@ -144,7 +144,7 @@ V8_INVOCATION_CALLBACK( getInfo ){
 
 	size_t param_size;
 
-	cl_int err = clGetPlatformInfo( platform->GetHandle(), pi, 0, NULL, &param_size );
+	cl_int err = clGetPlatformInfo( platform->GetID(), pi, 0, NULL, &param_size );
 
 	if( err != CL_SUCCESS ){
 		ThrowException( Exception::Error(getErrorMessage_getInfo(err)));
@@ -153,7 +153,7 @@ V8_INVOCATION_CALLBACK( getInfo ){
 
 
 	char* info = new char[ param_size ];
-	err = clGetPlatformInfo( platform->GetHandle(), pi, param_size, info, NULL );
+	err = clGetPlatformInfo( platform->GetID(), pi, param_size, info, NULL );
 
 	if( err != CL_SUCCESS ){
 		delete[] info;
