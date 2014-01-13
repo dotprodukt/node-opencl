@@ -18,13 +18,7 @@ private:
 	Platform( cl_platform_id handle );
 	~Platform();
 
-	static V8_INVOCATION_CALLBACK( constructor );
-	static V8_INVOCATION_CALLBACK( isPlatform );
-	static V8_INVOCATION_CALLBACK( getInfo );
-	static V8_INVOCATION_CALLBACK( getDevices );
-
 public:
-
 	cl_platform_id GetHandle();
 
 	static void Init( Handle<Object> exports );

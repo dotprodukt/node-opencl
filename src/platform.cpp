@@ -19,6 +19,7 @@ bool guardNew = TRUE;
 #define PLATFORM_PROTOTYPE_METHOD( name ) INIT_EXPORT_V8_FUNCTION( prototype, name )
 
 
+
 struct PlatformsBaton : CLWorkBaton {
 	cl_uint numPlatforms;
 	cl_platform_id* platforms;
@@ -59,6 +60,21 @@ struct PlatformInfoBaton : CLWorkBaton {
 	}
 };
 
+Handle<String> getErrorMessage_getInfo( cl_int error ){
+	switch( error ){
+		case CL_INVALID_PLATFORM:
+			return String::New("Invalid platform");
+			break;
+		case CL_INVALID_VALUE:
+			return String::New("Invalid parameter enum");
+			break;
+		case CL_OUT_OF_HOST_MEMORY:
+			return String::New("Out of host memory");
+			break;
+	}
+
+	return String::NewSymbol("Unknown error");
+}
 
 Platform::Platform( cl_platform_id handle ){
 	clHandle = handle;
@@ -80,6 +96,95 @@ Platform::~Platform(){
 cl_platform_id Platform::GetHandle(){
 	return clHandle;
 }
+
+
+V8_INVOCATION_CALLBACK( isPlatform ){
+	HandleScope scope;
+	return scope.Close( Boolean::New( Platform::IsPlatform(args[0]) ));
+}
+
+V8_INVOCATION_CALLBACK( constructor ){
+	HandleScope scope;
+
+	if( guardNew ){
+		ThrowException( Exception::TypeError(String::New("Illegal constructor")) );
+		return scope.Close( Undefined() );
+	}
+
+	return scope.Close( args.This() );
+}
+
+V8_INVOCATION_CALLBACK( getInfo ){
+	HandleScope scope;
+
+	if( !args.Length() ){
+		ThrowException( Exception::Error(String::New("Expects parameter enum")));
+		return scope.Close( Undefined() );
+	}
+
+	if( !(Platform::IsPlatform(args.This())) ){
+		//ThrowException( Exception::TypeError(String::New("Illegal invocation")));
+		return scope.Close( Undefined() );
+	}
+
+	if( !args[0]->IsInt32() ){
+		ThrowException( Exception::TypeError(String::New("Parameter enum must be integer")));
+		return scope.Close( Undefined() );
+	}
+
+	Platform* platform = node::ObjectWrap::Unwrap<Platform>( args.This() );
+
+	cl_platform_info pi = (args[0]->ToInt32()->Value());
+
+	size_t param_size;
+
+	cl_int err = clGetPlatformInfo( platform->GetHandle(), pi, 0, NULL, &param_size );
+
+	if( err != CL_SUCCESS ){
+		ThrowException( Exception::Error(getErrorMessage_getInfo(err)));
+		return scope.Close(Undefined());
+	}
+
+
+	char* info = new char[ param_size ];
+	err = clGetPlatformInfo( platform->GetHandle(), pi, param_size, info, NULL );
+
+	if( err != CL_SUCCESS ){
+		delete[] info;
+		ThrowException( Exception::Error(getErrorMessage_getInfo(err)));
+		return scope.Close(Undefined());
+	}	
+
+	Local<String> infoString = String::New( info );
+	delete[] info;
+
+	return scope.Close( infoString );
+}
+
+V8_INVOCATION_CALLBACK( getDevices ){
+	HandleScope scope;
+
+	if( !(Platform::IsPlatform(args.This())) ){
+		//ThrowException( Exception::TypeError(String::New("Illegal invocation")));
+		return scope.Close( Undefined() );
+	}
+
+	Platform* platform = node::ObjectWrap::Unwrap<Platform>( args.This() );
+
+	if( args.Length() ){
+		if( !args[0]->IsInt32() ){
+			ThrowException( Exception::TypeError(String::New("Expects device type")));
+			return scope.Close( Undefined() );
+		}
+
+		return scope.Close( Device::GetDevices( platform, args[0]->ToInt32()->Value() ) );
+	}
+
+
+
+	return scope.Close( Device::GetDevices( platform ) );
+}
+
 
 void Platform::Init( Handle<Object> exports ){
 	constructorTemplate = Persistent<FunctionTemplate>::New(FunctionTemplate::New( V8_INVOCATION_CALLBACK_NAME(constructor) ));
@@ -214,107 +319,4 @@ Handle<Object> Platform::GetPlatformByID( cl_platform_id handle ){
 	}
 
 	return *pair->second;
-}
-
-Handle<String> getErrorMessage_getInfo( cl_int error ){
-	switch( error ){
-		case CL_INVALID_PLATFORM:
-			return String::New("Invalid platform");
-			break;
-		case CL_INVALID_VALUE:
-			return String::New("Invalid parameter enum");
-			break;
-		case CL_OUT_OF_HOST_MEMORY:
-			return String::New("Out of host memory");
-			break;
-	}
-
-	return String::NewSymbol("Unknown error");
-}
-
-V8_INVOCATION_CALLBACK( Platform::isPlatform ){
-	HandleScope scope;
-	return scope.Close( Boolean::New( IsPlatform(args[0]) ));
-}
-
-V8_INVOCATION_CALLBACK( Platform::constructor ){
-	HandleScope scope;
-
-	if( guardNew ){
-		ThrowException( Exception::TypeError(String::New("Illegal constructor")) );
-		return scope.Close( Undefined() );
-	}
-
-	return scope.Close( args.This() );
-}
-
-V8_INVOCATION_CALLBACK( Platform::getInfo ){
-	HandleScope scope;
-
-	if( !args.Length() ){
-		ThrowException( Exception::Error(String::New("Expects parameter enum")));
-		return scope.Close( Undefined() );
-	}
-
-	if( !(IsPlatform(args.This())) ){
-		//ThrowException( Exception::TypeError(String::New("Illegal invocation")));
-		return scope.Close( Undefined() );
-	}
-
-	if( !args[0]->IsInt32() ){
-		ThrowException( Exception::TypeError(String::New("Parameter enum must be integer")));
-		return scope.Close( Undefined() );
-	}
-
-	Platform* platform = node::ObjectWrap::Unwrap<Platform>( args.This() );
-
-	cl_platform_info pi = (args[0]->ToInt32()->Value());
-
-	size_t param_size;
-
-	cl_int err = clGetPlatformInfo( platform->clHandle, pi, 0, NULL, &param_size );
-
-	if( err != CL_SUCCESS ){
-		ThrowException( Exception::Error(getErrorMessage_getInfo(err)));
-		return scope.Close(Undefined());
-	}
-
-
-	char* info = new char[ param_size ];
-	err = clGetPlatformInfo( platform->clHandle, pi, param_size, info, NULL );
-
-	if( err != CL_SUCCESS ){
-		delete[] info;
-		ThrowException( Exception::Error(getErrorMessage_getInfo(err)));
-		return scope.Close(Undefined());
-	}	
-
-	Local<String> infoString = String::New( info );
-	delete[] info;
-
-	return scope.Close( infoString );
-}
-
-V8_INVOCATION_CALLBACK( Platform::getDevices ){
-	HandleScope scope;
-
-	if( !(IsPlatform(args.This())) ){
-		//ThrowException( Exception::TypeError(String::New("Illegal invocation")));
-		return scope.Close( Undefined() );
-	}
-
-	Platform* platform = node::ObjectWrap::Unwrap<Platform>( args.This() );
-
-	if( args.Length() ){
-		if( !args[0]->IsInt32() ){
-			ThrowException( Exception::TypeError(String::New("Expects device type")));
-			return scope.Close( Undefined() );
-		}
-
-		return scope.Close( Device::GetDevices( platform, args[0]->ToInt32()->Value() ) );
-	}
-
-
-
-	return scope.Close( Device::GetDevices( platform ) );
 }
