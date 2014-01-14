@@ -1,4 +1,11 @@
 {
 	"name": "nwcl",
+	"description": "Node.js bindings for OpenCL (Not WebGL)",
+	
+	"author":{
+	    "name": "Brian Wiggins",
+	   "email": "dotprodukt@gmail.com"
+	},
+	
 	"main": "nwcl.js"
 }
